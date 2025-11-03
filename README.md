@@ -62,10 +62,10 @@ docker pull ghcr.io/toms-place/wkid:main
 # Run with custom parameters
 docker run -d \
   -p 8080:8080 \
-  -v /path/to/sa.pub:/etc/kubernetes/sa.pub:ro \
+  -v /path/to/sa.pub:/etc/kubernetes/pki/sa.pub:ro \
   -v /path/to/output:/web \
   ghcr.io/toms-place/wkid:main \
-  jwks --public-keys /etc/kubernetes/sa.pub --output-file /web/jwks.json
+  jwks --public-keys /etc/kubernetes/pki/sa.pub --output-file /web/jwks.json
 ```
 
 ### Helm Chart
@@ -119,7 +119,7 @@ helm install wkid oci://ghcr.io/toms-place/charts/wkid \
 
 The application supports the following environment variables:
 
-- `PUBLIC_KEY`: Path to the public key file (default: `/etc/kubernetes/sa.pub`)
+- `PUBLIC_KEY`: Path to the public key file (default: `/etc/kubernetes/pki/sa.pub`)
 - `OUTPUT_FILE`: Path to output JWKS file (default: `/web/jwks.json`)
 - `ADDITIONAL_FLAGS`: Additional flags for the azwi command
 

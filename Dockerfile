@@ -8,7 +8,7 @@ WORKDIR /
 
 COPY --from=builder /go/bin/azwi .
 
-ENV PUBLIC_KEY_PATH=/etc/kubernetes/sa.pub
+ENV PUBLIC_KEY_PATH=/etc/kubernetes/pki/sa.pub
 ENV OUTPUT_FILE=/web/jwks.json
 ENV ADDITIONAL_FLAGS=""
 

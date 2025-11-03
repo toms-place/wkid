@@ -38,7 +38,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           environment:
             - name: PUBLIC_KEY_PATH
-              value: "/etc/kubernetes/sa.pub"
+              value: "/etc/kubernetes/pki/sa.pub"
             - name: OUTPUT_FILE
               value: "/usr/share/nginx/html/jwks.json"
           imagePullPolicy: {{ .Values.image.pullPolicy }}

@@ -158,7 +158,7 @@ autoscaling:
 volumes:
 - name: sa-pub
   hostPath:
-    path: /etc/kubernetes/sa.pub
+    path: /etc/kubernetes/pki/sa.pub
     type: File
 - name: shared-data
   emptyDir: {}
@@ -168,7 +168,7 @@ volumes:
 volumeMounts:
   init:
   - name: sa-pub
-    mountPath: /etc/kubernetes/sa.pub
+    mountPath: /etc/kubernetes/pki/sa.pub
     readOnly: true
   shared:
   - name: shared-data
