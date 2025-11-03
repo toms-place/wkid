@@ -48,6 +48,7 @@ Selector labels
 {{- define "wkid.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "wkid.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: wkid
 {{- end }}
 
 {{/*

@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-replicaCount: 1
+replicaCount: 2
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
@@ -51,8 +51,8 @@ podAnnotations: {}
 # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 podLabels: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext:
+  fsGroup: 0
 
 securityContext:
   capabilities:
@@ -60,7 +60,7 @@ securityContext:
     - ALL
   readOnlyRootFilesystem: true
   runAsNonRoot: true
-  #runAsUser: 1000
+  runAsUser: 1000
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
@@ -139,11 +139,11 @@ resources: {}
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
   httpGet:
-    path: /
+    path: /jwks.json
     port: http
 readinessProbe:
   httpGet:
-    path: /
+    path: /jwks.json
     port: http
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
@@ -160,20 +160,11 @@ volumes:
   hostPath:
     path: /etc/kubernetes/pki/sa.pub
     type: File
-- name: shared-data
-  emptyDir: {}
-
-
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
-  init:
-  - name: sa-pub
-    mountPath: /etc/kubernetes/pki/sa.pub
-    readOnly: true
-  shared:
-  - name: shared-data
-    mountPath: /usr/share/nginx/html
-
+- name: sa-pub
+  mountPath: /mnt/sa.pub
+  readOnly: true
 nodeSelector: {}
 
 tolerations:
@@ -198,3 +189,14 @@ affinity:
           component: kube-apiserver
       topologyKey: kubernetes.io/hostname
       namespaceSelector: {}
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/component
+            operator: In
+            values:
+            - wkid
+        topologyKey: kubernetes.io/hostname

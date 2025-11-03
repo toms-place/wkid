@@ -36,20 +36,22 @@ spec:
       initContainers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          environment:
-            - name: PUBLIC_KEY_PATH
-              value: "/etc/kubernetes/pki/sa.pub"
-            - name: OUTPUT_FILE
-              value: "/usr/share/nginx/html/jwks.json"
+          args:
+            - "jwks"
+            - "--public-keys"
+            - "/mnt/sa.pub"
+            - "--output-file"
+            - "/out/jwks.json"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- with .Values.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.volumeMounts }}
           volumeMounts:
-            {{- toYaml .init | nindent 12 }}
-            {{- toYaml .shared | nindent 12 }}
+            - name: shared-data
+              mountPath: /out
+          {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
       containers:
         - name: nginx
@@ -78,14 +80,19 @@ spec:
           volumeMounts:
             - name: {{ include "wkid.configMap" . }}
               mountPath: /usr/share/nginx/html/openid
-          {{- with .Values.volumeMounts }}
-            {{- toYaml .shared | nindent 12 }}
-          {{- end }}
+            - name: shared-data
+              mountPath: /usr/share/nginx/html
+            - name: tmp-data
+              mountPath: /tmp
       volumes:
         - name: {{ include "wkid.configMap" . }}
           configMap:
             name: {{ include "wkid.configMap" . }}
             optional: false
+        - name: shared-data
+          emptyDir: {}
+        - name: tmp-data
+          emptyDir: {}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
