@@ -197,3 +197,4 @@ affinity:
         matchLabels:
           component: kube-apiserver
       topologyKey: kubernetes.io/hostname
+      namespaceSelector: {}
