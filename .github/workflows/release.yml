@@ -31,7 +31,10 @@ jobs:
         if [ -z "$PREVIOUS_TAG" ]; then
           echo "changelog=Initial release" >> $GITHUB_OUTPUT
         else
-          echo "changelog=$(git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..HEAD)" >> $GITHUB_OUTPUT
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" ${PREVIOUS_TAG}..HEAD)"
+          echo 'changelog<<EOF' >> $GITHUB_OUTPUT
+          echo $CHANGELOG >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
         fi
 
     - name: Create GitHub Release
