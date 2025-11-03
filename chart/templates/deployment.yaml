@@ -41,7 +41,7 @@ spec:
             - "--public-keys"
             - "/mnt/sa.pub"
             - "--output-file"
-            - "/out/jwks.json"
+            - "/out/jwks"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- with .Values.securityContext }}
           securityContext:
@@ -79,9 +79,9 @@ spec:
           {{- end }}
           volumeMounts:
             - name: {{ include "wkid.configMap" . }}
-              mountPath: /usr/share/nginx/html/openid
+              mountPath: /usr/share/nginx/html/.well-known
             - name: shared-data
-              mountPath: /usr/share/nginx/html
+              mountPath: /usr/share/nginx/html/openid/v1
             - name: tmp-data
               mountPath: /tmp
       volumes:

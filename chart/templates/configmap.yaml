@@ -10,10 +10,10 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 data:
-  configuration.json: |-
+  openid-configuration: |-
     {
-      "issuer": "https://{{ include "wkid.hostname" . }}/openid/configuration.json",
-      "jwks_uri": "https://{{ include "wkid.hostname" . }}/jwks.json",
+      "issuer": "https://{{ include "wkid.hostname" . }}/.well-known/openid-configuration",
+      "jwks_uri": "https://{{ include "wkid.hostname" . }}/openid/v1/jwks",
       "response_types_supported": [
         "id_token"
       ],
