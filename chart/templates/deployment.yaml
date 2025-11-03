@@ -77,8 +77,7 @@ spec:
           {{- end }}
           volumeMounts:
             - name: {{ include "wkid.configMap" . }}
-              mountPath: /usr/share/nginx/html
-              subPath: openid-configuration.json
+              mountPath: /usr/share/nginx/html/openid
           {{- with .Values.volumeMounts }}
             {{- toYaml .shared | nindent 12 }}
           {{- end }}
