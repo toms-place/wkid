@@ -2,8 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
-replicaCount: 2
+apiServer:
+  path: /etc/kubernetes/manifests/kube-apiserver.yaml
+  defaultIssuer: https://kubernetes.default.svc.cluster.local
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
@@ -55,12 +56,20 @@ podSecurityContext:
   fsGroup: 0
 
 securityContext:
-  capabilities:
-    drop:
-    - ALL
-  readOnlyRootFilesystem: true
-  runAsNonRoot: true
-  runAsUser: 1000
+  nonRoot:
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+  root:
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: false
+    runAsUser: 0
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
@@ -146,14 +155,6 @@ readinessProbe:
     path: /openid/v1/jwks
     port: http
 
-# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
 # Additional volumes on the output Deployment definition.
 volumes:
 - name: sa-pub
@@ -164,20 +165,18 @@ volumes:
 volumeMounts:
 - name: sa-pub
   mountPath: /mnt/sa.pub
-  readOnly: true
-nodeSelector: {}
+  readOnly: false
+
+# Needs to run on control plane nodes to access the kube-apiserver manifest
+nodeSelector:
+  kubernetes.io/os: linux
+  node-role.kubernetes.io/control-plane: ""
 
 tolerations:
 - key: node-role.kubernetes.io/control-plane
   operator: Exists
   effect: NoSchedule
 - key: node-role.kubernetes.io/control-plane
-  operator: Exists
-  effect: NoExecute
-- key: node-role.kubernetes.io/master
-  operator: Exists
-  effect: NoSchedule
-- key: node-role.kubernetes.io/master
   operator: Exists
   effect: NoExecute
 

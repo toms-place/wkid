@@ -1,14 +1,11 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: {{ include "wkid.fullname" . }}
   labels:
     {{- include "wkid.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "wkid.selectorLabels" . | nindent 6 }}
@@ -34,8 +31,26 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       initContainers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Chart.Name }}-permissions
+          image: "ubuntu:latest"
+          command:
+            - "chmod"
+          args:
+            - "g+r"
+            - "/mnt/sa.pub"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml .root | nindent 12 }}
+          {{- end }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        - name: {{ .Chart.Name }}-jwks
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          command:
+            - "azwi"
           args:
             - "jwks"
             - "--public-keys"
@@ -45,7 +60,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- with .Values.securityContext }}
           securityContext:
-            {{- toYaml . | nindent 12 }}
+            {{- toYaml .nonRoot | nindent 12 }}
           {{- end }}
           volumeMounts:
             - name: shared-data
@@ -53,11 +68,32 @@ spec:
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
+        - name: {{ .Chart.Name }}-issuer
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          command:
+            - "yq"
+          args:
+            - |
+              '.spec.containers[0].command |= ( .
+                  | del( .[] | select(. == "--service-account-issuer=*" ) )
+                  | . += [
+                      "--service-account-issuer='{{ include "wkid.hostname" . }}'",
+                      "--service-account-issuer='{{ .Values.apiServer.defaultIssuer }}'"
+                  ]
+              )' -i /mnt/kube-apiserver.yaml
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml .root | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: kube-apiserver
+              mountPath: /mnt/kube-apiserver.yaml
+              readOnly: false
       containers:
         - name: nginx
           {{- with .Values.securityContext }}
           securityContext:
-            {{- toYaml . | nindent 12 }}
+            {{- toYaml .nonRoot | nindent 12 }}
           {{- end }}
           image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -85,6 +121,10 @@ spec:
             - name: tmp-data
               mountPath: /tmp
       volumes:
+        - name: kube-apiserver
+          hostPath:
+            path: {{ .Values.apiServer.path }}
+            type: File
         - name: {{ include "wkid.configMap" . }}
           configMap:
             name: {{ include "wkid.configMap" . }}
