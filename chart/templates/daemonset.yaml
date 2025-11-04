@@ -74,13 +74,15 @@ spec:
             - "yq"
           args:
             - |
-              '.spec.containers[0].command |= ( .
+              .spec.containers[0].command |= ( .
                   | del( .[] | select(. == "--service-account-issuer=*" ) )
                   | . += [
-                      "--service-account-issuer='{{ include "wkid.hostname" . }}'",
-                      "--service-account-issuer='{{ .Values.apiServer.defaultIssuer }}'"
+                      "--service-account-issuer={{ include "wkid.hostname" . }}",
+                      "--service-account-issuer={{ .Values.apiServer.defaultIssuer }}"
                   ]
-              )' -i /mnt/kube-apiserver.yaml
+              )
+            - -i
+            - /mnt/kube-apiserver.yaml
           {{- with .Values.securityContext }}
           securityContext:
             {{- toYaml .root | nindent 12 }}
@@ -89,6 +91,8 @@ spec:
             - name: kube-apiserver
               mountPath: /mnt/kube-apiserver.yaml
               readOnly: false
+            - name: tmp-data
+              mountPath: /tmp
       containers:
         - name: nginx
           {{- with .Values.securityContext }}
