@@ -12,7 +12,7 @@ metadata:
 data:
   openid-configuration: |-
     {
-      "issuer": "https://kubernetes.default.svc.cluster.local",
+      "issuer": "https://{{ include "wkid.hostname" . }}",
       "jwks_uri": "https://{{ include "wkid.hostname" . }}/openid/v1/jwks",
       "response_types_supported": [
         "id_token"
