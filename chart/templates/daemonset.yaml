@@ -77,7 +77,7 @@ spec:
               .spec.containers[0].command |= ( .
                   | del( .[] | select(. == "--service-account-issuer=*" ) )
                   | . += [
-                      "--service-account-issuer={{ include "wkid.hostname" . }}",
+                      "--service-account-issuer=https://{{ include "wkid.hostname" . }}",
                       "--service-account-issuer={{ .Values.apiServer.defaultIssuer }}"
                   ]
               )
